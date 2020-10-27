@@ -11,6 +11,7 @@
 #include <dsn/utility/errors.h>
 #include <dsn/utility/output_utils.h>
 #include <dsn/dist/replication/duplication_common.h>
+#include <dsn/dist/fmt_logging.h>
 
 bool query_disk_info(
     shell_context *sc,
@@ -204,12 +205,12 @@ bool query_disk_replica(command_executor *e, shell_context *sc, arguments args)
         for (const auto &disk_info : resp.disk_infos) {
             int primary_count = 0;
             int secondary_count = 0;
-            for (const auto &replica_count : disk_info.holding_primary_replica_counts) {
-                primary_count += replica_count.second;
+            for (const auto &replicas : disk_info.holding_primary_replicas) {
+                primary_count += replicas.second.size();
             }
 
-            for (const auto &replica_count : disk_info.holding_secondary_replica_counts) {
-                secondary_count += replica_count.second;
+            for (const auto &replicas : disk_info.holding_secondary_replicas) {
+                secondary_count += replicas.second.size();
             }
             disk_printer.add_row(disk_info.tag);
             disk_printer.append_data(primary_count);
@@ -223,3 +224,99 @@ bool query_disk_replica(command_executor *e, shell_context *sc, arguments args)
 
     return true;
 }
+
+bool query_disk_replica_capacity(command_executor *e, shell_context *sc, arguments args)
+{
+    // disk_replica_capacity [-n|--node replica_server(ip:port)][-s|--disk disk_tag][-a|app
+    // app_name][-o|--out
+    // file_name][-j|-json][-r|--resolve]
+    const std::set<std::string> &params = {"n", "node", "s", "disk", "a", "app", "o", "out"};
+    const std::set<std::string> &flags = {"j", "json", "r", "resolve"};
+    argh::parser cmd(args.argc, args.argv, argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
+    if (!validate_cmd(cmd, params, flags)) {
+        return false;
+    }
+
+    bool format_to_json = cmd[{"-j", "--json"}];
+    bool support_resolve_host = cmd[{"-r", "--resolve"}];
+    std::string node_address = cmd({"-n", "--node"}).str();
+    std::string disk_tag = cmd({"-s", "--disk"}).str();
+    std::string app_name = cmd({"-a", "-app"}).str();
+    std::string file_name = cmd({"-o", "--out"}).str();
+
+    if (node_address.empty()) {
+        fmt::print(stderr, "ERROR:must input one node address!");
+        return false;
+    }
+
+    command_output out(file_name);
+    if (!out.stream()) {
+        return false;
+    }
+
+    std::map<dsn::rpc_address, dsn::error_with<query_disk_info_response>> err_resps;
+    if (!query_disk_info(sc, cmd, node_address, app_name, err_resps)) {
+        return true;
+    }
+
+    std::vector<row_data> rows;
+    if (!get_app_stat(sc, app_name, rows)) {
+        fmt::print(stderr, "ERROR:ERROR: query app stat from server failed!");
+        return true;
+    }
+
+    dsn::utils::multi_table_printer multi_printer;
+    for (const auto &err_resp : err_resps) {
+        dsn::error_s err = err_resp.second.get_error();
+        if (err.is_ok()) {
+            err = dsn::error_s::make(err_resp.second.get_value().err);
+        }
+        if (!err.is_ok()) {
+            fmt::print(stderr,
+                       "disk of node[{}] info skiped because request failed, error={}\n",
+                       err_resp.first.to_std_string(),
+                       err.description());
+            continue;
+        }
+
+        const auto &resp = err_resp.second.get_value();
+
+        dsn::utils::multi_table_printer multi_printer;
+        for (const auto &disk_info : resp.disk_infos) {
+            if (!disk_tag.empty() && disk_info.tag != disk_tag) {
+                continue;
+            }
+
+            dsn::utils::table_printer disk_printer(
+                fmt::format("{}[{}]", err_resp.first.to_std_string(), disk_info.tag));
+            disk_printer.add_title("replica");
+            disk_printer.add_column("status");
+            disk_printer.add_column("capacity");
+
+            int primary_count = 0;
+            int secondary_count = 0;
+            for (const auto &replicas : disk_info.holding_primary_replicas) {
+                primary_count += replicas.second.size();
+                for (const dsn::gpid &gpid : replicas.second) {
+                    disk_printer.add_row(gpid.to_string());
+                    disk_printer.append_data("primary");
+                    disk_printer.append_data(rows[gpid.get_partition_index].storage_mb);
+                }
+            }
+
+            for (const auto &replicas : disk_info.holding_secondary_replicas) {
+                secondary_count += replicas.second.size();
+                for (const dsn::gpid &gpid : replicas.second) {
+                    disk_printer.add_row(gpid.to_string());
+                    disk_printer.append_data("secondary");
+                    disk_printer.append_data(rows[gpid.get_partition_index].storage_mb);
+                }
+            }
+            multi_printer.add(std::move(disk_printer));
+        }
+
+        multi_printer.output(*out.stream(),
+                             format_to_json ? tp_output_format::kJsonPretty
+                                            : tp_output_format::kTabular);
+        return true;
+    }

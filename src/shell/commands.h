@@ -250,6 +250,8 @@ bool query_disk_capacity(command_executor *e, shell_context *sc, arguments args)
 
 bool query_disk_replica(command_executor *e, shell_context *sc, arguments args);
 
+bool query_disk_replica_capacity(command_executor *e, shell_context *sc, arguments args);
+
 // == bulk load (see 'commands/bulk_load.cpp') == //
 
 bool start_bulk_load(command_executor *e, shell_context *sc, arguments args);
