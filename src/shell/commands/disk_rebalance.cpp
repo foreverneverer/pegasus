@@ -256,6 +256,7 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
 
     std::map<dsn::rpc_address, dsn::error_with<query_disk_info_response>> err_resps;
     if (!query_disk_info(sc, cmd, node_address, app_name, err_resps)) {
+        fmt::print(stderr, "ERROR: query disk info from server failed!");
         return true;
     }
 
