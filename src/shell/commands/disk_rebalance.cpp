@@ -266,9 +266,8 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
         return true;
     }
 
-    dsn::utils::multi_table_printer multi_printer;
+    dsn::utils::multi_table_printer node_printer;
     for (const auto &err_resp : err_resps) {
-        fmt::print(stderr, "1");
         dsn::error_s err = err_resp.second.get_error();
         if (err.is_ok()) {
             err = dsn::error_s::make(err_resp.second.get_value().err);
@@ -282,17 +281,13 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
         }
 
         const auto &resp = err_resp.second.get_value();
-
-        dsn::utils::multi_table_printer multi_printer;
         for (const auto &disk_info : resp.disk_infos) {
-            fmt::print(stderr, "2");
             if (!disk_tag.empty() && disk_info.tag != disk_tag) {
-                fmt::print(stderr, "3");
                 continue;
             }
 
             dsn::utils::table_printer disk_printer(
-                fmt::format("{}[{}]", err_resp.first.to_std_string(), disk_info.tag));
+                fmt::format("{}({})", err_resp.first.to_std_string(), disk_info.tag));
             disk_printer.add_title("replica");
             disk_printer.add_column("status");
             disk_printer.add_column("capacity");
@@ -300,10 +295,8 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
             int primary_count = 0;
             int secondary_count = 0;
             for (const auto &replicas : disk_info.holding_primary_replicas) {
-                fmt::print(stderr, "4");
                 primary_count += replicas.second.size();
                 for (const dsn::gpid &gpid : replicas.second) {
-                    fmt::print(stderr, "5");
                     disk_printer.add_row(gpid.to_string());
                     disk_printer.append_data("primary");
                     disk_printer.append_data(rows[gpid.get_partition_index()].storage_mb);
@@ -311,22 +304,17 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
             }
 
             for (const auto &replicas : disk_info.holding_secondary_replicas) {
-                fmt::print(stderr, "6");
                 secondary_count += replicas.second.size();
                 for (const dsn::gpid &gpid : replicas.second) {
-                    fmt::print(stderr, "7");
                     disk_printer.add_row(gpid.to_string());
                     disk_printer.append_data("secondary");
                     disk_printer.append_data(rows[gpid.get_partition_index()].storage_mb);
                 }
             }
-            disk_printer.output(
-        *out.stream(), format_to_json ? tp_output_format::kJsonPretty : tp_output_format::kTabular);
-            //multi_printer.add(std::move(disk_printer));
+            node_printer.add(std::move(disk_printer));
         }
     }
-    fmt::print(stderr, "8");
-    multi_printer.output(
+    node_printer.output(
         *out.stream(), format_to_json ? tp_output_format::kJsonPretty : tp_output_format::kTabular);
     return true;
 }
