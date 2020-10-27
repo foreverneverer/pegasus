@@ -320,3 +320,4 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
                                             : tp_output_format::kTabular);
         return true;
     }
+}
