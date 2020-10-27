@@ -314,10 +314,8 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
             }
             multi_printer.add(std::move(disk_printer));
         }
-
-        multi_printer.output(*out.stream(),
-                             format_to_json ? tp_output_format::kJsonPretty
-                                            : tp_output_format::kTabular);
-        return true;
     }
+    multi_printer.output(
+        *out.stream(), format_to_json ? tp_output_format::kJsonPretty : tp_output_format::kTabular);
+    return true;
 }
