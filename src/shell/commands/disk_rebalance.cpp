@@ -267,7 +267,7 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
     }
 
     for(auto const &data : rows) {
-        fmt::print(stderr, "{}.{}.{}",data.row_name, data.app_id, data.storage_mb);
+        fmt::print(stderr, "{}.{}.{}\n",data.row_name, data.app_id, data.storage_mb);
     }
 
     dsn::utils::multi_table_printer node_printer;
