@@ -320,7 +320,9 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
                     disk_printer.append_data(rows[gpid.get_partition_index()].storage_mb);
                 }
             }
-            multi_printer.add(std::move(disk_printer));
+            disk_printer.output(
+        *out.stream(), format_to_json ? tp_output_format::kJsonPretty : tp_output_format::kTabular);
+            //multi_printer.add(std::move(disk_printer));
         }
     }
     fmt::print(stderr, "8");
