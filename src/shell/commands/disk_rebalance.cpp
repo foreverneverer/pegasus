@@ -300,7 +300,7 @@ bool query_disk_replica_capacity(command_executor *e, shell_context *sc, argumen
                 for (const dsn::gpid &gpid : replicas.second) {
                     disk_printer.add_row(gpid.to_string());
                     disk_printer.append_data("primary");
-                    disk_printer.append_data(rows[gpid.get_partition_index].storage_mb);
+                    disk_printer.append_data(rows[gpid.get_partition_index()].storage_mb);
                 }
             }
 
