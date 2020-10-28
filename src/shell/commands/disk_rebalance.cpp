@@ -223,3 +223,53 @@ bool query_disk_replica(command_executor *e, shell_context *sc, arguments args)
 
     return true;
 }
+
+bool disk_balance(command_executor *e, shell_context *sc, arguments args)
+{
+    // disk_capacity [-n|--node replica_server(ip:port)][-a|-app app_name][-o|--out
+    // file_name][-j|--json]
+    const std::set<std::string> &params = {
+        "n", "node", "a", "app", "p", "partition", "f", "from", "t", "target"};
+    const std::set<std::string> &flags = {};
+    argh::parser cmd(args.argc, args.argv, argh::parser::PREFER_PARAM_FOR_UNREG_OPTION);
+    if (!validate_cmd(cmd, params, flags)) {
+        return false;
+    }
+
+    std::string node_address = cmd({"-n", "--node"}).str();
+    std::string app = cmd({"-a", "--app"}).str();
+    std::string partition = cmd({"-p", "--partition"}).str();
+    std::string from = cmd({"-f", "--from"}).str();
+    std::string to = cmd({"-t", "--to"}).str();
+
+    int app_int = 0;
+    int partition_int = 0;
+    dsn::buf2int32(app, app_int);
+    dsn::buf2int32(partition, partition_int);
+    dsn::gpid gpid = dsn::gpid(app_int, partition_int);
+
+    std::map<dsn::rpc_address, dsn::replication::node_status::type> nodes;
+    auto error = sc->ddl_client->list_nodes(::dsn::replication::node_status::NS_INVALID, nodes);
+    if (error != dsn::ERR_OK) {
+        fmt::print(stderr, "list nodes failed, error={}\n", error.to_string());
+        return false;
+    }
+
+    std::vector<dsn::rpc_address> targets;
+    for (const auto &node : nodes) {
+        if (node_address.empty() || node_address == node.first.to_std_string()) {
+            targets.push_back(node.first);
+            if (!node_address.empty())
+                break;
+        }
+    }
+
+    if (targets.empty()) {
+        fmt::print(stderr, "invalid target replica server address!\n");
+        return false;
+    }
+
+    std::map<dsn::rpc_address, dsn::error_with<migrate_replica_response>> err_resps;
+    sc->ddl_client->disk_rebalance(targets, gpid, from, to, err_resps);
+    return true;
+}
