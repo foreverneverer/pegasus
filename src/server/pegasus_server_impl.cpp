@@ -1581,7 +1581,7 @@ void pegasus_server_impl::cancel_background_work(bool wait)
 
 ::dsn::error_code pegasus_server_impl::stop(bool clear_state)
 {
-    derror_replica("jiashuo_debug=stop {}", dir());
+    derror_replica("jiashuo_debug=stop {}", data_dir());
     if (!_is_open) {
         dassert(_db == nullptr, "");
         dassert(!clear_state, "should not be here if do clear");
@@ -1971,7 +1971,7 @@ private:
 pegasus_server_impl::storage_apply_checkpoint(chkpt_apply_mode mode,
                                               const dsn::replication::learn_state &state)
 {
-    derror_replica("jiashuo_debug=storage_apply_checkpoint {}", dir());
+    derror_replica("jiashuo_debug=storage_apply_checkpoint {}", data_dir());
     ::dsn::error_code err;
     int64_t ci = state.to_decree_included;
 
@@ -2019,7 +2019,11 @@ pegasus_server_impl::storage_apply_checkpoint(chkpt_apply_mode mode,
 
     // clear data dir
     if (dsn::utils::filesystem::directory_exists(data_dir())) {
-        derror_replica("jiashuo_debug=potential commit has flush to sst file and need delete {}", dir());
+        derror_replica("jiashuo_debug=potential commit has flush to sst file and need delete {}", data_dir());
+    } else {
+        if (dsn::utils::filesystem::directory_exists(data_dir())) {
+        derror_replica("jiashuo_debug=potential commit no flush to sst file and need delete {}", data_dir());
+    }
     }
 
     if (!::dsn::utils::filesystem::remove_path(data_dir())) {
