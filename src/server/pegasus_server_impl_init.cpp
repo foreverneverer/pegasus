@@ -104,6 +104,8 @@ pegasus_server_impl::pegasus_server_impl(dsn::replication::replica *r)
     _primary_address = dsn::rpc_address(dsn_primary_address()).to_string();
     _gpid = get_gpid();
 
+     derror_replica("jiashuo_debug=pegasus_server_impl");
+
     _read_hotkey_collector =
         std::make_shared<hotkey_collector>(dsn::replication::hotkey_type::READ, this);
     _write_hotkey_collector =

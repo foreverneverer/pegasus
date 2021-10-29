@@ -1581,6 +1581,7 @@ void pegasus_server_impl::cancel_background_work(bool wait)
 
 ::dsn::error_code pegasus_server_impl::stop(bool clear_state)
 {
+    derror_replica("jiashuo_debug=stop {}", dir());
     if (!_is_open) {
         dassert(_db == nullptr, "");
         dassert(!clear_state, "should not be here if do clear");
@@ -1970,6 +1971,7 @@ private:
 pegasus_server_impl::storage_apply_checkpoint(chkpt_apply_mode mode,
                                               const dsn::replication::learn_state &state)
 {
+    derror_replica("jiashuo_debug=storage_apply_checkpoint {}", dir());
     ::dsn::error_code err;
     int64_t ci = state.to_decree_included;
 
@@ -2016,6 +2018,10 @@ pegasus_server_impl::storage_apply_checkpoint(chkpt_apply_mode mode,
     }
 
     // clear data dir
+    if (dsn::utils::filesystem::directory_exists(data_dir())) {
+        derror_replica("jiashuo_debug=potential commit has flush to sst file and need delete {}", dir());
+    }
+
     if (!::dsn::utils::filesystem::remove_path(data_dir())) {
         derror("%s: clear data directory %s failed", replica_name(), data_dir().c_str());
         return ::dsn::ERR_FILE_OPERATION_FAILED;
