@@ -101,3 +101,5 @@ config-shell.ini.*
 *.tar.gz
 pegasus-server*
 *.log
+onebox1/
+onebox2/

@@ -36,14 +36,14 @@ function usage()
     echo "   stop_zk                   stop local zookeeper server"
     echo "   clear_zk                  stop local zookeeper server and clear data"
     echo
-    echo "   start_onebox              start pegasus onebox"
-    echo "   stop_onebox               stop pegasus onebox"
-    echo "   list_onebox               list pegasus onebox"
-    echo "   clear_onebox              clear pegasus onebox"
+    echo "   start_onebox              start pegasus onebox1"
+    echo "   stop_onebox               stop pegasus onebox1"
+    echo "   list_onebox               list pegasus onebox1"
+    echo "   clear_onebox              clear pegasus onebox1"
     echo
-    echo "   start_onebox_instance     start pegasus onebox instance"
-    echo "   stop_onebox_instance      stop pegasus onebox instance"
-    echo "   restart_onebox_instance   restart pegasus onebox instance"
+    echo "   start_onebox_instance     start pegasus onebox1 instance"
+    echo "   stop_onebox_instance      stop pegasus onebox1 instance"
+    echo "   restart_onebox_instance   restart pegasus onebox1 instance"
     echo
     echo "   start_kill_test           start pegasus kill test"
     echo "   stop_kill_test            stop pegasus kill test"
@@ -269,7 +269,7 @@ function usage_test()
     echo "Options for subcommand 'test':"
     echo "   -h|--help         print the help info"
     echo "   -m|--modules      set the test modules: pegasus_unit_test pegasus_function_test"
-    echo "   -k|--keep_onebox  whether keep the onebox after the test[default false]"
+    echo "   -k|--keep_onebox  whether keep the onebox1 after the test[default false]"
     echo "   --on_travis       run tests on travis without some time-cosuming function tests"
 }
 function run_test()
@@ -319,9 +319,9 @@ function run_test()
     echo "Test start time: `date`"
     start_time=`date +%s`
 
-    ./run.sh clear_onebox #clear the onebox before test
+    ./run.sh clear_onebox #clear the onebox1 before test
     if ! ./run.sh start_onebox -w; then
-        echo "ERROR: unable to continue on testing because starting onebox failed"
+        echo "ERROR: unable to continue on testing because starting onebox1 failed"
         exit 1
     fi
     
@@ -571,13 +571,13 @@ function run_start_onebox()
         exit 1
     fi
     if ps -ef | grep '/pegasus_server config.ini' | grep -E -q 'app_list meta|app_list replica|app_list collector'; then
-        echo "ERROR: some onebox processes are running, start failed"
+        echo "ERROR: some onebox1 processes are running, start failed"
         exit 1
     fi
     ln -s -f "${SERVER_PATH}/pegasus_server" "${ROOT}"
 
     if ! run_start_zk; then
-        echo "ERROR: unable to setup onebox because zookeeper can not be started"
+        echo "ERROR: unable to setup onebox1 because zookeeper can not be started"
         exit 1
     fi
 
@@ -587,7 +587,7 @@ function run_start_onebox()
         cp -f ${CONFIG_FILE} ${ROOT}/config-server.ini
         sed -i 's/\<34601\>/@META_PORT@/' ${ROOT}/config-server.ini
         sed -i 's/\<34801\>/@REPLICA_PORT@/' ${ROOT}/config-server.ini
-        sed -i 's/%{cluster.name}/onebox/g' ${ROOT}/config-server.ini
+        sed -i 's/%{cluster.name}/onebox1/g' ${ROOT}/config-server.ini
         sed -i 's/%{network.interface}/eth0/g' ${ROOT}/config-server.ini
         sed -i 's/%{email.address}//g' ${ROOT}/config-server.ini
         sed -i 's/%{app.dir}/.\/data/g' ${ROOT}/config-server.ini
@@ -608,7 +608,7 @@ function run_start_onebox()
         sed -i 's/app_name = .*$/app_name = '"$APP_NAME"'/' ${ROOT}/config-server.ini
         sed -i 's/partition_count = .*$/partition_count = '"$PARTITION_COUNT"'/' ${ROOT}/config-server.ini
     else
-        [ -z "${CONFIG_FILE}" ] && CONFIG_FILE=${ROOT}/src/server/config.min.ini
+        [ -z "${CONFIG_FILE}" ] && CONFIG_FILE=${ROOT}/src/server/config.min.ini1
         [ ! -f "${CONFIG_FILE}" ] && { echo "${CONFIG_FILE} is not exist"; exit 1; }
         sed "s/@LOCAL_IP@/${LOCAL_IP}/g;s/@APP_NAME@/${APP_NAME}/g;s/@PARTITION_COUNT@/${PARTITION_COUNT}/g" \
             ${CONFIG_FILE} >${ROOT}/config-server.ini
@@ -617,8 +617,8 @@ function run_start_onebox()
     echo "starting server"
     ld_library_path=${SERVER_PATH}:$LD_LIBRARY_PATH
     export LD_LIBRARY_PATH=$ld_library_path
-    mkdir -p onebox
-    cd onebox
+    mkdir -p onebox1
+    cd onebox1
     for i in $(seq ${META_COUNT})
     do
         meta_port=$((34600+i))
@@ -766,7 +766,7 @@ function run_clear_onebox()
     done
     run_stop_onebox
     run_clear_zk
-    rm -rf onebox *.log *.data config-*.ini &>/dev/null
+    rm -rf onebox1 *.log *.data config-*.ini &>/dev/null
     sleep 1
 }
 
@@ -819,7 +819,7 @@ function run_start_onebox_instance()
         exit 1
     fi
     if [ $META_ID != "0" ]; then
-        dir=onebox/meta$META_ID
+        dir=onebox1/meta$META_ID
         if [ ! -d $dir ]; then
             echo "ERROR: invalid meta_id"
             exit 1
@@ -837,7 +837,7 @@ function run_start_onebox_instance()
         echo "INFO: meta@$META_ID started"
     fi
     if [ $REPLICA_ID != "0" ]; then
-        dir=onebox/replica$REPLICA_ID
+        dir=onebox1/replica$REPLICA_ID
         if [ ! -d $dir ]; then
             echo "ERROR: invalid replica_id"
             exit 1
@@ -855,7 +855,7 @@ function run_start_onebox_instance()
         echo "INFO: replica@$REPLICA_ID started"
     fi
     if [ $COLLECTOR_ID != "0" ]; then
-        dir=onebox/collector
+        dir=onebox1/collector
         if [ ! -d $dir ]; then
             echo "ERROR: collector dir $dir not exist"
             exit 1
@@ -923,7 +923,7 @@ function run_stop_onebox_instance()
         exit 1
     fi
     if [ $META_ID != "0" ]; then
-        dir=onebox/meta$META_ID
+        dir=onebox1/meta$META_ID
         if [ ! -d $dir ]; then
             echo "ERROR: invalid meta_id"
             exit 1
@@ -936,7 +936,7 @@ function run_stop_onebox_instance()
         echo "INFO: meta@$META_ID stopped"
     fi
     if [ $REPLICA_ID != "0" ]; then
-        dir=onebox/replica$REPLICA_ID
+        dir=onebox1/replica$REPLICA_ID
         if [ ! -d $dir ]; then
             echo "ERROR: invalid replica_id"
             exit 1
@@ -1118,7 +1118,7 @@ s/@GET_THREAD_COUNT@/${THREAD_COUNT}/g;\
 s+@ONEBOX_RUN_PATH@+`pwd`+g" ${ROOT}/src/test/kill_test/config.ini >$CONFIG
 
     # start verifier
-    mkdir -p onebox/verifier && cd onebox/verifier
+    mkdir -p onebox1/verifier && cd onebox1/verifier
     ln -s -f ${DSN_ROOT}/bin/pegasus_kill_test/pegasus_kill_test
     ln -s -f ${ROOT}/$CONFIG config.ini
     echo "$PWD/pegasus_kill_test config.ini verifier &>/dev/null &"
@@ -1129,7 +1129,7 @@ s+@ONEBOX_RUN_PATH@+`pwd`+g" ${ROOT}/src/test/kill_test/config.ini >$CONFIG
     cd ${ROOT}
 
     #start killer
-    mkdir -p onebox/killer && cd onebox/killer
+    mkdir -p onebox1/killer && cd onebox1/killer
     ln -s -f ${DSN_ROOT}/bin/pegasus_kill_test/pegasus_kill_test
     ln -s -f ${ROOT}/$CONFIG config.ini
     echo "$PWD/pegasus_kill_test config.ini $KILLER_TYPE &>/dev/null &"
@@ -1204,7 +1204,7 @@ function run_list_kill_test()
     run_list_onebox
     ps -ef | grep '/pegasus_kill_test ' | grep -v grep
     echo "------------------------------"
-    echo "Server dir: ./onebox"
+    echo "Server dir: ./onebox1"
     echo "------------------------------"
 }
 
@@ -1349,7 +1349,7 @@ s+@OLD_VERSION_PATH@+${OLD_VERSION_PATH}+g;\
 s+@NEW_VERSION_PATH@+${NEW_VERSION_PATH}+g " ${ROOT}/src/test/upgrade_test/config.ini >$CONFIG
 
     # start verifier
-    mkdir -p onebox/verifier && cd onebox/verifier
+    mkdir -p onebox1/verifier && cd onebox1/verifier
     ln -s -f ${DSN_ROOT}/bin/pegasus_upgrade_test/pegasus_upgrade_test
     ln -s -f ${ROOT}/$CONFIG config.ini
     echo "./pegasus_upgrade_test config.ini verifier &>/dev/null &"
@@ -1359,7 +1359,7 @@ s+@NEW_VERSION_PATH@+${NEW_VERSION_PATH}+g " ${ROOT}/src/test/upgrade_test/confi
     cd ${ROOT}
 
     #start upgrader
-    mkdir -p onebox/upgrader && cd onebox/upgrader
+    mkdir -p onebox1/upgrader && cd onebox1/upgrader
     ln -s -f ${DSN_ROOT}/bin/pegasus_upgrade_test/pegasus_upgrade_test
     ln -s -f ${ROOT}/$CONFIG config.ini
     echo "./pegasus_upgrade_test config.ini upgrader &>/dev/null &"
@@ -1434,7 +1434,7 @@ function run_list_upgrade_test()
     run_list_onebox
     ps -ef | grep ' \./pegasus_upgrade_test ' | grep -v grep
     echo "------------------------------"
-    echo "Server dir: ./onebox"
+    echo "Server dir: ./onebox1"
     echo "------------------------------"
 }
 
@@ -1603,7 +1603,7 @@ function run_shell()
     CONFIG_SPECIFIED=0
     CLUSTER=127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603
     CLUSTER_SPECIFIED=0
-    CLUSTER_NAME=onebox
+    CLUSTER_NAME=onebox1
     CLUSTER_NAME_SPECIFIED=0
     while [[ $# > 0 ]]; do
         key="$1"
