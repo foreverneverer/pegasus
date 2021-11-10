@@ -111,7 +111,7 @@
   stable_rs_min_running_seconds = 0
   server_load_balancer_type = greedy_load_balancer
   min_live_node_count_for_unfreeze = 1
-  cold_backup_disabled = false
+  cold_backup_disabled = true
   recover_from_replica_server = false
 
 [replication]
@@ -147,7 +147,7 @@
 
 [pegasus.clusters]
   onebox1 = @LOCAL_IP@:34601,@LOCAL_IP@:34602,@LOCAL_IP@:34603
-  onebox2 = 0.0.0.0:35601
+  onebox2 = @LOCAL_IP@:35601,@LOCAL_IP@:35602,@LOCAL_IP@:35603
 
 # The group of clusters participating in duplication.
 # Each cluster is assigned with a unique cluster id [1, 127] to identify which cluster

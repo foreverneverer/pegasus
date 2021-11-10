@@ -6,13 +6,13 @@
   type = meta
   name = meta
   ports = @META_PORT@
-  pools = THREAD_POOL_DEFAULT,THREAD_POOL_META_SERVER,THREAD_POOL_META_STATE,THREAD_POOL_FD,THREAD_POOL_DLOCK,THREAD_POOL_BLOCK_SERVICE
+  pools = THREAD_POOL_DEFAULT,THREAD_POOL_META_SERVER,THREAD_POOL_META_STATE,THREAD_POOL_FD,THREAD_POOL_DLOCK,THREAD_POOL_BLOCK_SERVICE,THREAD_POOL_LOCAL_SERVICE
 
 [apps.replica]
   type = replica
   name = replica
   ports = @REPLICA_PORT@
-  pools = THREAD_POOL_DEFAULT,THREAD_POOL_REPLICATION_LONG,THREAD_POOL_REPLICATION,THREAD_POOL_FD,THREAD_POOL_LOCAL_APP,THREAD_POOL_BLOCK_SERVICE,THREAD_POOL_COMPACT,THREAD_POOL_INGESTION,THREAD_POOL_SLOG,THREAD_POOL_PLOG,THREAD_POOL_SCAN
+  pools = THREAD_POOL_DEFAULT,THREAD_POOL_REPLICATION_LONG,THREAD_POOL_REPLICATION,THREAD_POOL_FD,THREAD_POOL_LOCAL_APP,THREAD_POOL_BLOCK_SERVICE,THREAD_POOL_COMPACT,THREAD_POOL_INGESTION,THREAD_POOL_SLOG,THREAD_POOL_PLOG,THREAD_POOL_SCAN,THREAD_POOL_LOCAL_SERVICE
 
 [apps.collector]
   name = collector
@@ -104,20 +104,21 @@
 
 [meta_server]
   server_list = @LOCAL_IP@:34601,@LOCAL_IP@:34602,@LOCAL_IP@:34603
-  cluster_root = /pegasus/onebox/@LOCAL_IP@
+  cluster_root = /pegasus/onebox1/@LOCAL_IP@
   distributed_lock_service_type = distributed_lock_service_zookeeper
-  distributed_lock_service_parameters = /pegasus/onebox/@LOCAL_IP@
+  distributed_lock_service_parameters = /pegasus/onebox1/@LOCAL_IP@
   meta_state_service_type = meta_state_service_zookeeper
   stable_rs_min_running_seconds = 0
   server_load_balancer_type = greedy_load_balancer
   min_live_node_count_for_unfreeze = 1
-  cold_backup_disabled = false
+  cold_backup_disabled = true
   recover_from_replica_server = false
 
 [replication]
   mutation_2pc_min_replica_count = 1
-  cold_backup_root = onebox
-  cluster_name = onebox
+  cold_backup_root = onebox1
+  cluster_name = onebox1
+  max_concurrent_uploading_file_count = 5
 
 [meta_server.apps.@APP_NAME@]
   app_name = @APP_NAME@
@@ -146,14 +147,14 @@
   enable_detect_hotkey = false
 
 [pegasus.clusters]
-  onebox = @LOCAL_IP@:34601,@LOCAL_IP@:34602,@LOCAL_IP@:34603
-  onebox2 = 0.0.0.0:35601
+  onebox1 = @LOCAL_IP@:34601,@LOCAL_IP@:34602,@LOCAL_IP@:34603
+  onebox2 = @LOCAL_IP@:35601,@LOCAL_IP@:35602,@LOCAL_IP@:35603
 
 # The group of clusters participating in duplication.
 # Each cluster is assigned with a unique cluster id [1, 127] to identify which cluster
 # the write comes from.
 [duplication-group]
-  onebox = 1
+  onebox1 = 1
   onebox2 = 2
 
 [zookeeper]

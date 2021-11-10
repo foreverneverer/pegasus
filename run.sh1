@@ -570,10 +570,10 @@ function run_start_onebox()
         echo "ERROR: file ${SERVER_PATH}/pegasus_server not exist"
         exit 1
     fi
-    if ps -ef | grep '/pegasus_server config.ini' | grep -E -q 'app_list meta|app_list replica|app_list collector'; then
-        echo "ERROR: some onebox1 processes are running, start failed"
-        exit 1
-    fi
+    # if ps -ef | grep '/pegasus_server config.ini' | grep -E -q 'app_list meta|app_list replica|app_list collector'; then
+    #     echo "ERROR: some onebox1 processes are running, start failed"
+    #     exit 1
+    # fi
     ln -s -f "${SERVER_PATH}/pegasus_server" "${ROOT}"
 
     if ! run_start_zk; then
