@@ -28,8 +28,8 @@
 
 [block_service.local_service]
   type = local_service
-  args = ../block_service/local_service
-
+  args = /
+  
 [tools.simple_logger]
   short_header = false
   stderr_start_level = LOG_LEVEL_ERROR
@@ -118,6 +118,7 @@
   mutation_2pc_min_replica_count = 1
   cold_backup_root = onebox2
   cluster_name = onebox2
+  duplication_enabled = true
 
 [meta_server.apps.@APP_NAME@]
   app_name = @APP_NAME@
@@ -135,7 +136,7 @@
   # Options:
   #   - falcon
   #   - prometheus
-  perf_counter_sink =
+  perf_counter_sink = 
   # The HTTP port exposed to Prometheus for pulling metrics from pegasus server.
   prometheus_port = @PROMETHEUS_PORT@
 

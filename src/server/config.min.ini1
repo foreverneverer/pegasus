@@ -28,7 +28,7 @@
 
 [block_service.local_service]
   type = local_service
-  args = ../block_service/local_service
+  args = /
 
 [tools.simple_logger]
   short_header = false
@@ -119,6 +119,7 @@
   cold_backup_root = onebox1
   cluster_name = onebox1
   max_concurrent_uploading_file_count = 5
+  duplication_enabled = true
 
 [meta_server.apps.@APP_NAME@]
   app_name = @APP_NAME@
@@ -136,7 +137,7 @@
   # Options:
   #   - falcon
   #   - prometheus
-  perf_counter_sink =
+  perf_counter_sink = 
   # The HTTP port exposed to Prometheus for pulling metrics from pegasus server.
   prometheus_port = @PROMETHEUS_PORT@
 
