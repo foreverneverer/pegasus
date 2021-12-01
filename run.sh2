@@ -704,7 +704,7 @@ function run_stop_onebox()
         esac
         shift
     done
-    ps -ef | grep '/pegasus_server config.ini' | grep -E 'app_list meta|app_list replica|app_list collector' | awk '{print $2}' | xargs kill &>/dev/null
+    ps -ef | grep  -E  '/onebox2.*pegasus_server config.ini' | grep -E 'app_list meta|app_list replica|app_list collector' | awk '{print $2}' | xargs kill &>/dev/null
 }
 
 #####################
