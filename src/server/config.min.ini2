@@ -158,7 +158,7 @@
   onebox2 = 2
 
 [zookeeper]
-  hosts_list = 127.0.0.1:22181
+  hosts_list = 127.0.0.1:22182
   timeout_ms = 60000
   logfile = zoo.log
 

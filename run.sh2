@@ -369,8 +369,8 @@ function run_start_zk()
     # check nc command
     type nc >/dev/null 2>&1 || { echo >&2 "start zk failed, need install netcat command..."; exit 1;}
 
-    INSTALL_DIR=`pwd`/.zk_install
-    PORT=22181
+    INSTALL_DIR=`pwd`/.zk_install/onebox2
+    PORT=22182
     while [[ $# > 0 ]]; do
         key="$1"
         case $key in
@@ -415,7 +415,7 @@ function usage_stop_zk()
 }
 function run_stop_zk()
 {
-    INSTALL_DIR=`pwd`/.zk_install
+    INSTALL_DIR=`pwd`/.zk_install/onebox2
     while [[ $# > 0 ]]; do
         key="$1"
         case $key in
@@ -452,7 +452,7 @@ function usage_clear_zk()
 }
 function run_clear_zk()
 {
-    INSTALL_DIR=`pwd`/.zk_install
+    INSTALL_DIR=`pwd`/.zk_install/onebox2
     while [[ $# > 0 ]]; do
         key="$1"
         case $key in
@@ -734,7 +734,7 @@ function run_list_onebox()
         esac
         shift
     done
-    ps -ef | grep '/pegasus_server config.ini' | grep -E 'app_list meta|app_list replica|app_list collector' | sort -k11
+    ps -ef | grep -E '/onebox2.*pegasus_server config.ini' | grep -E 'app_list meta|app_list replica|app_list collector' | sort -k11
 }
 
 #####################
