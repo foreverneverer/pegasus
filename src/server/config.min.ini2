@@ -52,55 +52,55 @@
 [threadpool.THREAD_POOL_REPLICATION]
   name = replica
   partitioned = true
-  worker_count = 2
+  worker_count = 8
 
 [threadpool.THREAD_POOL_META_STATE]
   name = meta_state
   partitioned = true
-  worker_count = 1
+  worker_count = 8
 
 [threadpool.THREAD_POOL_DLOCK]
   name = dist_lock
   partitioned = true
-  worker_count = 1
+  worker_count = 8
 
 [threadpool.THREAD_POOL_FD]
   name = fd
-  worker_count = 2
+  worker_count = 8
 
 [threadpool.THREAD_POOL_LOCAL_APP]
   name = local_app
-  worker_count = 2
+  worker_count = 8
 
 [threadpool.THREAD_POOL_SCAN]
   name = scan_query
-  worker_count = 2
+  worker_count = 8
 
 [threadpool.THREAD_POOL_REPLICATION_LONG]
   name = rep_long
-  worker_count = 2
+  worker_count = 8
 
 [threadpool.THREAD_POOL_BLOCK_SERVICE]
   name = block_service
-  worker_count = 1
+  worker_count = 8
 
 [threadpool.THREAD_POOL_COMPACT]
   name = compact
-  worker_count = 1
+  worker_count = 8
 
 [threadpool.THREAD_POOL_INGESTION]
   name = ingestion
   partitioned = false
-  worker_count = 2
+  worker_count = 8
 
 [threadpool.THREAD_POOL_SLOG]
   name = slog
-  worker_count = 1
+  worker_count = 8
 
 [threadpool.THREAD_POOL_PLOG]
   name = plog
   partitioned = true
-  worker_count = 4
+  worker_count = 8
 
 [meta_server]
   server_list = @LOCAL_IP@:35601,@LOCAL_IP@:35602,@LOCAL_IP@:35603
