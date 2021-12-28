@@ -1381,55 +1381,65 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
     //
     bool db_exist = true;
     auto path = ::dsn::utils::filesystem::path_combine(data_dir(), "rdb");
+    auto copy = ::dsn::utils::filesystem::path_combine(learn_dir(), "checkpoint.copy");
     if (::dsn::utils::filesystem::path_exists(path)) {
         // only case 1
         ddebug("%s: rdb is already exist, path = %s", replica_name(), path.c_str());
     } else {
-        std::pair<std::string, bool> restore_info = get_restore_dir_from_env(envs);
-        const std::string &restore_dir = restore_info.first;
-        bool force_restore = restore_info.second;
-        if (restore_dir.empty()) {
-            // case 2
-            if (force_restore) {
-                derror("%s: try to restore, but we can't combine restore_dir from envs",
-                       replica_name());
-                return ::dsn::ERR_FILE_OPERATION_FAILED;
-            } else {
-                db_exist = false;
-                dinfo("%s: open a new db, path = %s", replica_name(), path.c_str());
-            }
+        ddebug("%s: rdb is not already exist, path = %s", replica_name(), path.c_str());
+        if (::dsn::utils::filesystem::path_exists(copy)) {
+             ddebug("%s: rdb is duplicate from remote, path = %s", replica_name(), copy.c_str());
+            dsn::utils::filesystem::rename_path(copy, path);
         } else {
-            // case 3
-            ddebug("%s: try to restore from restore_dir = %s", replica_name(), restore_dir.c_str());
-            if (::dsn::utils::filesystem::directory_exists(restore_dir)) {
-                // here, we just rename restore_dir to rdb, then continue the normal process
-                if (::dsn::utils::filesystem::rename_path(restore_dir.c_str(), path.c_str())) {
-                    ddebug("%s: rename restore_dir(%s) to rdb(%s) succeed",
-                           replica_name(),
-                           restore_dir.c_str(),
-                           path.c_str());
-                } else {
-                    derror("%s: rename restore_dir(%s) to rdb(%s) failed",
-                           replica_name(),
-                           restore_dir.c_str(),
-                           path.c_str());
-                    return ::dsn::ERR_FILE_OPERATION_FAILED;
-                }
-            } else {
+            std::pair<std::string, bool> restore_info = get_restore_dir_from_env(envs);
+            const std::string &restore_dir = restore_info.first;
+            bool force_restore = restore_info.second;
+            if (restore_dir.empty()) {
+                // case 2
                 if (force_restore) {
-                    derror("%s: try to restore, but restore_dir isn't exist, restore_dir = %s",
-                           replica_name(),
-                           restore_dir.c_str());
+                    derror("%s: try to restore, but we can't combine restore_dir from envs",
+                           replica_name());
                     return ::dsn::ERR_FILE_OPERATION_FAILED;
                 } else {
                     db_exist = false;
-                    dwarn(
-                        "%s: try to restore and restore_dir(%s) isn't exist, but we don't force "
-                        "it, the role of this replica must not primary, so we open a new db on the "
-                        "path(%s)",
-                        replica_name(),
-                        restore_dir.c_str(),
-                        path.c_str());
+                    dinfo("%s: open a new db, path = %s", replica_name(), path.c_str());
+                }
+            } else {
+                // case 3
+                ddebug("%s: try to restore from restore_dir = %s",
+                       replica_name(),
+                       restore_dir.c_str());
+                if (::dsn::utils::filesystem::directory_exists(restore_dir)) {
+                    // here, we just rename restore_dir to rdb, then continue the normal process
+                    if (::dsn::utils::filesystem::rename_path(restore_dir.c_str(), path.c_str())) {
+                        ddebug("%s: rename restore_dir(%s) to rdb(%s) succeed",
+                               replica_name(),
+                               restore_dir.c_str(),
+                               path.c_str());
+                    } else {
+                        derror("%s: rename restore_dir(%s) to rdb(%s) failed",
+                               replica_name(),
+                               restore_dir.c_str(),
+                               path.c_str());
+                        return ::dsn::ERR_FILE_OPERATION_FAILED;
+                    }
+                } else {
+                    if (force_restore) {
+                        derror("%s: try to restore, but restore_dir isn't exist, restore_dir = %s",
+                               replica_name(),
+                               restore_dir.c_str());
+                        return ::dsn::ERR_FILE_OPERATION_FAILED;
+                    } else {
+                        db_exist = false;
+                        dwarn("%s: try to restore and restore_dir(%s) isn't exist, but we don't "
+                              "force "
+                              "it, the role of this replica must not primary, so we open a new db "
+                              "on the "
+                              "path(%s)",
+                              replica_name(),
+                              restore_dir.c_str(),
+                              path.c_str());
+                    }
                 }
             }
         }
@@ -1994,6 +2004,7 @@ private:
     }
 
     auto chkpt_dir = ::dsn::utils::filesystem::path_combine(data_dir(), chkpt_get_dir_name(ci));
+    derror_replica("checkpoint {}", chkpt_dir);
     state.files.clear();
     if (!::dsn::utils::filesystem::get_subfiles(chkpt_dir, state.files, true)) {
         derror("%s: list files in checkpoint dir %s failed", replica_name(), chkpt_dir.c_str());
