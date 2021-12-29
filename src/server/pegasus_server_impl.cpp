@@ -32,6 +32,7 @@
 #include <dsn/dist/replication/replication.codes.h>
 #include <dsn/utility/flags.h>
 #include <dsn/utils/token_bucket_throttling_controller.h>
+#include <dsn/dist/replication/duplication_common.h>
 
 #include "base/pegasus_key_schema.h"
 #include "base/pegasus_value_schema.h"
@@ -1380,16 +1381,22 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
     //          3, restore_dir is exist
     //
     bool db_exist = true;
-    auto path = ::dsn::utils::filesystem::path_combine(data_dir(), "rdb");
-    auto copy = ::dsn::utils::filesystem::path_combine(learn_dir(), "checkpoint.copy");
-    if (::dsn::utils::filesystem::path_exists(path)) {
+    auto rdb_path = ::dsn::utils::filesystem::path_combine(data_dir(), "rdb");
+    auto duplication_path = duplication_dir();
+    if (::dsn::utils::filesystem::path_exists(rdb_path)) {
         // only case 1
-        ddebug("%s: rdb is already exist, path = %s", replica_name(), path.c_str());
+        ddebug("%s: rdb is already exist, path = %s", replica_name(), rdb_path.c_str());
     } else {
-        ddebug("%s: rdb is not already exist, path = %s", replica_name(), path.c_str());
-        if (::dsn::utils::filesystem::path_exists(copy)) {
-             ddebug("%s: rdb is duplicate from remote, path = %s", replica_name(), copy.c_str());
-            dsn::utils::filesystem::rename_path(copy, path);
+        if (::dsn::utils::filesystem::path_exists(duplication_path) &&
+            envs.find(dsn::replication::duplication_constants::DUPLICATION_MASTER_APP_FLAG) !=
+                envs.end()) {
+            if(!dsn::utils::filesystem::rename_path(duplication_path, rdb_path)) {
+                derror_replica("load duplication data[{}] from {} to failed",
+                               envs[dsn::replication::duplication_constants::DUPLICATION_MASTER_APP_FLAG],
+                               duplication_path,
+                               rdb_path);
+                return ::dsn::ERR_FILE_OPERATION_FAILED;
+            }
         } else {
             std::pair<std::string, bool> restore_info = get_restore_dir_from_env(envs);
             const std::string &restore_dir = restore_info.first;
@@ -1402,7 +1409,7 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
                     return ::dsn::ERR_FILE_OPERATION_FAILED;
                 } else {
                     db_exist = false;
-                    dinfo("%s: open a new db, path = %s", replica_name(), path.c_str());
+                    dinfo("%s: open a new db, path = %s", replica_name(), rdb_path.c_str());
                 }
             } else {
                 // case 3
@@ -1411,16 +1418,17 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
                        restore_dir.c_str());
                 if (::dsn::utils::filesystem::directory_exists(restore_dir)) {
                     // here, we just rename restore_dir to rdb, then continue the normal process
-                    if (::dsn::utils::filesystem::rename_path(restore_dir.c_str(), path.c_str())) {
+                    if (::dsn::utils::filesystem::rename_path(restore_dir.c_str(),
+                                                              rdb_path.c_str())) {
                         ddebug("%s: rename restore_dir(%s) to rdb(%s) succeed",
                                replica_name(),
                                restore_dir.c_str(),
-                               path.c_str());
+                               rdb_path.c_str());
                     } else {
                         derror("%s: rename restore_dir(%s) to rdb(%s) failed",
                                replica_name(),
                                restore_dir.c_str(),
-                               path.c_str());
+                               rdb_path.c_str());
                         return ::dsn::ERR_FILE_OPERATION_FAILED;
                     }
                 } else {
@@ -1438,14 +1446,14 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
                               "path(%s)",
                               replica_name(),
                               restore_dir.c_str(),
-                              path.c_str());
+                              rdb_path.c_str());
                     }
                 }
             }
         }
     }
 
-    ddebug("%s: start to open rocksDB's rdb(%s)", replica_name(), path.c_str());
+    ddebug("%s: start to open rocksDB's rdb(%s)", replica_name(), rdb_path.c_str());
 
     // Here we create a `tmp_data_cf_opts` because we don't want to modify `_data_cf_opts`, which
     // will be used elsewhere.
@@ -1455,7 +1463,7 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
         // When DB exists, meta CF and data CF must be present.
         bool missing_meta_cf = true;
         bool missing_data_cf = true;
-        if (check_column_families(path, &missing_meta_cf, &missing_data_cf) != ::dsn::ERR_OK) {
+        if (check_column_families(rdb_path, &missing_meta_cf, &missing_data_cf) != ::dsn::ERR_OK) {
             derror_replica("check column families failed");
             return ::dsn::ERR_LOCAL_APP_FAILURE;
         }
@@ -1467,7 +1475,7 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
         std::vector<rocksdb::ColumnFamilyDescriptor> loaded_cf_descs;
         rocksdb::ColumnFamilyOptions loaded_data_cf_opts;
         // Set `ignore_unknown_options` true for forward compatibility.
-        auto status = rocksdb::LoadLatestOptions(path,
+        auto status = rocksdb::LoadLatestOptions(rdb_path,
                                                  rocksdb::Env::Default(),
                                                  &loaded_db_opt,
                                                  &loaded_cf_descs,
@@ -1506,14 +1514,17 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
 
     std::vector<rocksdb::ColumnFamilyDescriptor> column_families(
         {{DATA_COLUMN_FAMILY_NAME, tmp_data_cf_opts}, {META_COLUMN_FAMILY_NAME, _meta_cf_opts}});
-    auto s = rocksdb::CheckOptionsCompatibility(
-        path, rocksdb::Env::Default(), _db_opts, column_families, /*ignore_unknown_options=*/true);
+    auto s = rocksdb::CheckOptionsCompatibility(rdb_path,
+                                                rocksdb::Env::Default(),
+                                                _db_opts,
+                                                column_families,
+                                                /*ignore_unknown_options=*/true);
     if (!s.ok() && !s.IsNotFound() && !has_incompatible_db_options) {
         derror_replica("rocksdb::CheckOptionsCompatibility failed, error = {}", s.ToString());
         return ::dsn::ERR_LOCAL_APP_FAILURE;
     }
     std::vector<rocksdb::ColumnFamilyHandle *> handles_opened;
-    auto status = rocksdb::DB::Open(_db_opts, path, column_families, &handles_opened, &_db);
+    auto status = rocksdb::DB::Open(_db_opts, rdb_path, column_families, &handles_opened, &_db);
     if (!status.ok()) {
         derror_replica("rocksdb::DB::Open failed, error = {}", status.ToString());
         return ::dsn::ERR_LOCAL_APP_FAILURE;
