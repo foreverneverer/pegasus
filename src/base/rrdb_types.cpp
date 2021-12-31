@@ -4365,39 +4365,39 @@ void scan_response::printTo(std::ostream &out) const
     out << ")";
 }
 
-duplicate_request::~duplicate_request() throw() {}
+duplicate_entry::~duplicate_entry() throw() {}
 
-void duplicate_request::__set_timestamp(const int64_t val)
+void duplicate_entry::__set_timestamp(const int64_t val)
 {
     this->timestamp = val;
     __isset.timestamp = true;
 }
 
-void duplicate_request::__set_task_code(const ::dsn::task_code &val)
+void duplicate_entry::__set_task_code(const ::dsn::task_code &val)
 {
     this->task_code = val;
     __isset.task_code = true;
 }
 
-void duplicate_request::__set_raw_message(const ::dsn::blob &val)
+void duplicate_entry::__set_raw_message(const ::dsn::blob &val)
 {
     this->raw_message = val;
     __isset.raw_message = true;
 }
 
-void duplicate_request::__set_cluster_id(const int8_t val)
+void duplicate_entry::__set_cluster_id(const int8_t val)
 {
     this->cluster_id = val;
     __isset.cluster_id = true;
 }
 
-void duplicate_request::__set_verify_timetag(const bool val)
+void duplicate_entry::__set_verify_timetag(const bool val)
 {
     this->verify_timetag = val;
     __isset.verify_timetag = true;
 }
 
-uint32_t duplicate_request::read(::apache::thrift::protocol::TProtocol *iprot)
+uint32_t duplicate_entry::read(::apache::thrift::protocol::TProtocol *iprot)
 {
 
     apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
@@ -4468,11 +4468,11 @@ uint32_t duplicate_request::read(::apache::thrift::protocol::TProtocol *iprot)
     return xfer;
 }
 
-uint32_t duplicate_request::write(::apache::thrift::protocol::TProtocol *oprot) const
+uint32_t duplicate_entry::write(::apache::thrift::protocol::TProtocol *oprot) const
 {
     uint32_t xfer = 0;
     apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
-    xfer += oprot->writeStructBegin("duplicate_request");
+    xfer += oprot->writeStructBegin("duplicate_entry");
 
     if (this->__isset.timestamp) {
         xfer += oprot->writeFieldBegin("timestamp", ::apache::thrift::protocol::T_I64, 1);
@@ -4504,7 +4504,7 @@ uint32_t duplicate_request::write(::apache::thrift::protocol::TProtocol *oprot) 
     return xfer;
 }
 
-void swap(duplicate_request &a, duplicate_request &b)
+void swap(duplicate_entry &a, duplicate_entry &b)
 {
     using ::std::swap;
     swap(a.timestamp, b.timestamp);
@@ -4515,7 +4515,7 @@ void swap(duplicate_request &a, duplicate_request &b)
     swap(a.__isset, b.__isset);
 }
 
-duplicate_request::duplicate_request(const duplicate_request &other126)
+duplicate_entry::duplicate_entry(const duplicate_entry &other126)
 {
     timestamp = other126.timestamp;
     task_code = other126.task_code;
@@ -4524,7 +4524,7 @@ duplicate_request::duplicate_request(const duplicate_request &other126)
     verify_timetag = other126.verify_timetag;
     __isset = other126.__isset;
 }
-duplicate_request::duplicate_request(duplicate_request &&other127)
+duplicate_entry::duplicate_entry(duplicate_entry &&other127)
 {
     timestamp = std::move(other127.timestamp);
     task_code = std::move(other127.task_code);
@@ -4533,7 +4533,7 @@ duplicate_request::duplicate_request(duplicate_request &&other127)
     verify_timetag = std::move(other127.verify_timetag);
     __isset = std::move(other127.__isset);
 }
-duplicate_request &duplicate_request::operator=(const duplicate_request &other128)
+duplicate_entry &duplicate_entry::operator=(const duplicate_entry &other128)
 {
     timestamp = other128.timestamp;
     task_code = other128.task_code;
@@ -4543,7 +4543,7 @@ duplicate_request &duplicate_request::operator=(const duplicate_request &other12
     __isset = other128.__isset;
     return *this;
 }
-duplicate_request &duplicate_request::operator=(duplicate_request &&other129)
+duplicate_entry &duplicate_entry::operator=(duplicate_entry &&other129)
 {
     timestamp = std::move(other129.timestamp);
     task_code = std::move(other129.task_code);
@@ -4553,10 +4553,10 @@ duplicate_request &duplicate_request::operator=(duplicate_request &&other129)
     __isset = std::move(other129.__isset);
     return *this;
 }
-void duplicate_request::printTo(std::ostream &out) const
+void duplicate_entry::printTo(std::ostream &out) const
 {
     using ::apache::thrift::to_string;
-    out << "duplicate_request(";
+    out << "duplicate_entry(";
     out << "timestamp=";
     (__isset.timestamp ? (out << to_string(timestamp)) : (out << "<null>"));
     out << ", "
@@ -4571,6 +4571,123 @@ void duplicate_request::printTo(std::ostream &out) const
     out << ", "
         << "verify_timetag=";
     (__isset.verify_timetag ? (out << to_string(verify_timetag)) : (out << "<null>"));
+    out << ")";
+}
+
+duplicate_request::~duplicate_request() throw() {}
+
+void duplicate_request::__set_entries(const std::vector<duplicate_entry> &val)
+{
+    this->entries = val;
+}
+
+uint32_t duplicate_request::read(::apache::thrift::protocol::TProtocol *iprot)
+{
+
+    apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
+    uint32_t xfer = 0;
+    std::string fname;
+    ::apache::thrift::protocol::TType ftype;
+    int16_t fid;
+
+    xfer += iprot->readStructBegin(fname);
+
+    using ::apache::thrift::protocol::TProtocolException;
+
+    while (true) {
+        xfer += iprot->readFieldBegin(fname, ftype, fid);
+        if (ftype == ::apache::thrift::protocol::T_STOP) {
+            break;
+        }
+        switch (fid) {
+        case 1:
+            if (ftype == ::apache::thrift::protocol::T_LIST) {
+                {
+                    this->entries.clear();
+                    uint32_t _size130;
+                    ::apache::thrift::protocol::TType _etype133;
+                    xfer += iprot->readListBegin(_etype133, _size130);
+                    this->entries.resize(_size130);
+                    uint32_t _i134;
+                    for (_i134 = 0; _i134 < _size130; ++_i134) {
+                        xfer += this->entries[_i134].read(iprot);
+                    }
+                    xfer += iprot->readListEnd();
+                }
+                this->__isset.entries = true;
+            } else {
+                xfer += iprot->skip(ftype);
+            }
+            break;
+        default:
+            xfer += iprot->skip(ftype);
+            break;
+        }
+        xfer += iprot->readFieldEnd();
+    }
+
+    xfer += iprot->readStructEnd();
+
+    return xfer;
+}
+
+uint32_t duplicate_request::write(::apache::thrift::protocol::TProtocol *oprot) const
+{
+    uint32_t xfer = 0;
+    apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
+    xfer += oprot->writeStructBegin("duplicate_request");
+
+    xfer += oprot->writeFieldBegin("entries", ::apache::thrift::protocol::T_LIST, 1);
+    {
+        xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT,
+                                      static_cast<uint32_t>(this->entries.size()));
+        std::vector<duplicate_entry>::const_iterator _iter135;
+        for (_iter135 = this->entries.begin(); _iter135 != this->entries.end(); ++_iter135) {
+            xfer += (*_iter135).write(oprot);
+        }
+        xfer += oprot->writeListEnd();
+    }
+    xfer += oprot->writeFieldEnd();
+
+    xfer += oprot->writeFieldStop();
+    xfer += oprot->writeStructEnd();
+    return xfer;
+}
+
+void swap(duplicate_request &a, duplicate_request &b)
+{
+    using ::std::swap;
+    swap(a.entries, b.entries);
+    swap(a.__isset, b.__isset);
+}
+
+duplicate_request::duplicate_request(const duplicate_request &other136)
+{
+    entries = other136.entries;
+    __isset = other136.__isset;
+}
+duplicate_request::duplicate_request(duplicate_request &&other137)
+{
+    entries = std::move(other137.entries);
+    __isset = std::move(other137.__isset);
+}
+duplicate_request &duplicate_request::operator=(const duplicate_request &other138)
+{
+    entries = other138.entries;
+    __isset = other138.__isset;
+    return *this;
+}
+duplicate_request &duplicate_request::operator=(duplicate_request &&other139)
+{
+    entries = std::move(other139.entries);
+    __isset = std::move(other139.__isset);
+    return *this;
+}
+void duplicate_request::printTo(std::ostream &out) const
+{
+    using ::apache::thrift::to_string;
+    out << "duplicate_request(";
+    out << "entries=" << to_string(entries);
     out << ")";
 }
 
@@ -4664,30 +4781,30 @@ void swap(duplicate_response &a, duplicate_response &b)
     swap(a.__isset, b.__isset);
 }
 
-duplicate_response::duplicate_response(const duplicate_response &other130)
+duplicate_response::duplicate_response(const duplicate_response &other140)
 {
-    error = other130.error;
-    error_hint = other130.error_hint;
-    __isset = other130.__isset;
+    error = other140.error;
+    error_hint = other140.error_hint;
+    __isset = other140.__isset;
 }
-duplicate_response::duplicate_response(duplicate_response &&other131)
+duplicate_response::duplicate_response(duplicate_response &&other141)
 {
-    error = std::move(other131.error);
-    error_hint = std::move(other131.error_hint);
-    __isset = std::move(other131.__isset);
+    error = std::move(other141.error);
+    error_hint = std::move(other141.error_hint);
+    __isset = std::move(other141.__isset);
 }
-duplicate_response &duplicate_response::operator=(const duplicate_response &other132)
+duplicate_response &duplicate_response::operator=(const duplicate_response &other142)
 {
-    error = other132.error;
-    error_hint = other132.error_hint;
-    __isset = other132.__isset;
+    error = other142.error;
+    error_hint = other142.error_hint;
+    __isset = other142.__isset;
     return *this;
 }
-duplicate_response &duplicate_response::operator=(duplicate_response &&other133)
+duplicate_response &duplicate_response::operator=(duplicate_response &&other143)
 {
-    error = std::move(other133.error);
-    error_hint = std::move(other133.error_hint);
-    __isset = std::move(other133.__isset);
+    error = std::move(other143.error);
+    error_hint = std::move(other143.error_hint);
+    __isset = std::move(other143.__isset);
     return *this;
 }
 void duplicate_response::printTo(std::ostream &out) const
@@ -4701,6 +4818,5 @@ void duplicate_response::printTo(std::ostream &out) const
     (__isset.error_hint ? (out << to_string(error_hint)) : (out << "<null>"));
     out << ")";
 }
-
-} // namespace apps
-} // namespace dsn
+}
+} // namespace

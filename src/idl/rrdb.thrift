@@ -273,7 +273,7 @@ struct scan_response
     6:string        server;
 }
 
-struct duplicate_request
+struct duplicate_entry
 {
     // The timestamp of this write.
     1: optional i64 timestamp
@@ -290,6 +290,12 @@ struct duplicate_request
     // Whether to compare the timetag of old value with the new write's.
     5: optional bool verify_timetag
 }
+
+struct duplicate_request
+{
+    1: list<duplicate_entry> entries
+}
+
 
 struct duplicate_response
 {

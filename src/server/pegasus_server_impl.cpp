@@ -1390,11 +1390,12 @@ void pegasus_server_impl::on_clear_scanner(const int64_t &args) { _context_cache
         if (::dsn::utils::filesystem::path_exists(duplication_path) &&
             envs.find(dsn::replication::duplication_constants::DUPLICATION_MASTER_APP_FLAG) !=
                 envs.end()) {
-            if(!dsn::utils::filesystem::rename_path(duplication_path, rdb_path)) {
-                derror_replica("load duplication data[{}] from {} to {} failed",
-                               envs[dsn::replication::duplication_constants::DUPLICATION_MASTER_APP_FLAG],
-                               duplication_path,
-                               rdb_path);
+            if (!dsn::utils::filesystem::rename_path(duplication_path, rdb_path)) {
+                derror_replica(
+                    "load duplication data[{}] from {} to {} failed",
+                    envs[dsn::replication::duplication_constants::DUPLICATION_MASTER_APP_FLAG],
+                    duplication_path,
+                    rdb_path);
                 return ::dsn::ERR_FILE_OPERATION_FAILED;
             }
         } else {

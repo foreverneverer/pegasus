@@ -231,3 +231,7 @@
 [task.RPC_RRDB_RRDB_MULTI_GET]
   is_profile = true
   profiler::size.response.server = true
+
+[block_service.fds_c3]
+type = fds_service
+args = cnbj1-fds.api.xiaomi.net AKFE4KKGOSDDPSPF5F Ky3BnMD4AxMQqLa3LZBhLA93FaqEb55fSecNCAO8 pegasus-backup
