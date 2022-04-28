@@ -28,17 +28,19 @@ func CopyData(client *Client, from string, target string, timeStart string, time
 		}
 		if  util.FormatDate(tb.CreateSecond) < timeEnd && util.FormatDate(tb.CreateSecond) > timeStart  {
 			_, err := targetAdminClient.Meta.CreateApp(tb.AppName, map[string]string{}, 4)
-			fmt.Println("create ", tb.AppName, util.FormatDate(tb.CreateSecond), err.Error())
-			if strings.Contains(err.Error(), "EXIST") {
-				fmt.Println(err.Error(), "忽略")
-				time.Sleep(time.Microsecond * 100)
-				continue
+			if err != nil {
+				fmt.Println("创建 ", tb.AppName, util.FormatDate(tb.CreateSecond), err.Error())
 			}
 			time.Sleep(time.Second * 1)
+		} else {
+			fmt.Println("忽略 ", tb.AppName, util.FormatDate(tb.CreateSecond))
 		}
 	}
 
-	time.Sleep(time.Second * 20)
+	if !copy {
+		fmt.Println("等待30s尽量确保表已经建好")
+		time.Sleep(time.Second * 30)
+	}
 	fmt.Println("开始迁移")
 	fromCfg := pegasus.Config{
 		MetaServers: metaAddrsFrom,
