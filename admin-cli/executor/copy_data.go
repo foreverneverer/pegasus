@@ -31,6 +31,7 @@ func CopyData(client *Client, from string, target string, timeStart string, time
 			if err != nil {
 				fmt.Println("创建 ", tb.AppName, util.FormatDate(tb.CreateSecond), err.Error())
 			}
+			fmt.Println("创建 ", tb.AppName, util.FormatDate(tb.CreateSecond))
 			time.Sleep(time.Second * 1)
 		} else {
 			fmt.Println("忽略 ", tb.AppName, util.FormatDate(tb.CreateSecond))
