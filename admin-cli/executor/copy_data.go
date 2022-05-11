@@ -54,7 +54,7 @@ func CopyData(client *Client, from string, target string, timeStart string, time
 	targetUserClient := pegasus.NewClient(targetCfg)
 	ctx := context.Background()
 	for _, tb := range tables {
-		if  strings.Contains(tb.AppName, "loki") && util.FormatDate(tb.CreateSecond) < timeEnd && util.FormatDate(tb.CreateSecond) > timeStart {
+		if  util.FormatDate(tb.CreateSecond) < timeEnd && util.FormatDate(tb.CreateSecond) > timeStart {
 			fmt.Println("开始迁移", tb.AppName)
 			var tableConnectorFrom pegasus.TableConnector
 			var tableConnectorTarget pegasus.TableConnector
